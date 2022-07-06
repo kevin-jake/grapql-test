@@ -25,12 +25,14 @@ app.use(
         description: String!
         price: Float!
         date: String!
+        creator: User!
     }
 
     type User {
         _id: ID!
         email: String!
         password: String
+        createdEvents: [Event!]
     }
     
     input EventInput {
@@ -77,12 +79,24 @@ app.use(
           description: args.eventInput.description,
           price: +args.eventInput.price,
           date: new Date(args.eventInput.date),
+          creator: "62c58fc9ded063ee5ca91e67",
         });
+        let createdEvent;
         return event
           .save()
           .then((result) => {
-            console.log(result);
-            return { ...result._doc };
+            createdEvent = { ...result._doc };
+            return User.findById("62c58fc9ded063ee5ca91e67");
+          })
+          .then((user) => {
+            if (user) {
+              throw new Error("User exists already.");
+            }
+            user.createdEvents.push(event);
+            return user.save();
+          })
+          .then(() => {
+            return createdEvent;
           })
           .catch((err) => {
             console.log(err);
