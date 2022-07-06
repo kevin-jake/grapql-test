@@ -1,6 +1,7 @@
 {
   "env": {
     "MONGO": "graphql-test",
-    "MONGO_PASSWORD": "mf1XfXfRmLIEYztm"
+    "MONGO_PASSWORD": "mf1XfXfRmLIEYztm",
+    "MONGO_DB": "training"
   }
 }
