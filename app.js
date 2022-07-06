@@ -1,17 +1,19 @@
-const express = require('express')
-const bodyParser = require('body-parser')
-const graphqlHttp = require('express-graphql').graphqlHTTP
-const { buildSchema } = require('graphql')
+const express = require("express");
+const bodyParser = require("body-parser");
+const graphqlHttp = require("express-graphql").graphqlHTTP;
+const { buildSchema } = require("graphql");
+const { request } = require("express");
+const mongoose = require("mongoose");
 
 const app = express();
 
 const events = [];
 
-app.use(bodyParser.json())
+app.use(bodyParser.json());
 
 app.use(
-    '/graphql', 
-    graphqlHttp({
+  "/graphql",
+  graphqlHttp({
     schema: buildSchema(`
     type Event {
         _id: ID!
@@ -42,22 +44,32 @@ app.use(
     }
     `),
     rootValue: {
-        events: () => {
-            return events;
-        },
-        createEvent: args => {
-            const event = {
-                _id: Math.random().toString(),
-                title: args.eventInput.title,
-                description: args.eventInput.description,
-                price: +args.eventInput.price,
-                date: args.eventInput.date
-            };
-            events.push(event)
-            return event
-        }
+      events: () => {
+        return events;
+      },
+      createEvent: (args) => {
+        const event = {
+          _id: Math.random().toString(),
+          title: args.eventInput.title,
+          description: args.eventInput.description,
+          price: +args.eventInput.price,
+          date: args.eventInput.date,
+        };
+        events.push(event);
+        return event;
+      },
     },
-    graphiql: true
-}))
+    graphiql: true,
+  })
+);
 
-app.listen(3000)
+mongoose
+  .connect(
+    `mongodb+srv://${process.env.MONGO}:${process.env.MONGO_PASSWORD}@kevinjake.lr4uy.mongodb.net/?retryWrites=true&w=majority`
+  )
+  .then(() => {
+    app.listen(3000);
+  })
+  .catch((err) => {
+    console.log(err);
+  });
