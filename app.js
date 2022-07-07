@@ -11,7 +11,30 @@ const User = require("./models/user");
 
 const app = express();
 
-const events = [];
+const user = (userId) => {
+  return User.findById(userId)
+    .then((user) => {
+      return {
+        ...user._doc,
+        createdEvents: events.bind(this, user._doc.createdEvents),
+      };
+    })
+    .catch((err) => {
+      throw err;
+    });
+};
+
+const events = (eventIds) => {
+  return Event.find({ _id: { $in: eventIds } })
+    .then((events) => {
+      return events.map((event) => {
+        return { ...event._doc, creator: user.bind(this, event.creator) };
+      });
+    })
+    .catch((err) => {
+      throw err;
+    });
+};
 
 app.use(bodyParser.json());
 
@@ -64,9 +87,13 @@ app.use(
     rootValue: {
       events: () => {
         return Event.find()
+          .populate("creator")
           .then((events) => {
             return events.map((event) => {
-              return { ...event._doc };
+              return {
+                ...event._doc,
+                creator: user.bind(this, event._doc.creator),
+              };
             });
           })
           .catch((err) => {
@@ -89,9 +116,6 @@ app.use(
             return User.findById("62c58fc9ded063ee5ca91e67");
           })
           .then((user) => {
-            if (user) {
-              throw new Error("User exists already.");
-            }
             user.createdEvents.push(event);
             return user.save();
           })
